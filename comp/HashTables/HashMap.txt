@@ -1,0 +1,158 @@
+#pragma once
+#include "HashEntry.h"
+#include <math.h>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+using namespace std;
+
+const int TABLE_SIZE = 128;
+
+class HashMap
+{
+public:
+	HashMap();
+	~HashMap();
+
+	int get(int key);
+	void put(int key, int value);
+	void putLineal(int key, int value);
+	void putCuadratico(int key, int value);
+	void putDouble(int key, int value);
+	void putFromFileLineal(char* file);
+	void putFromFileCuadratico(char* file);
+	void putFromFileDouble(char* file);
+
+private:
+	HashEntry** table;
+
+	int putLinealR(int key, int n);
+	int putCuadraticoR(int key, int n);
+	int putDoubleR(int key, int n);
+};
+
+HashMap::HashMap()
+{
+	table = new HashEntry*[TABLE_SIZE];
+	for (int i = 0; i < TABLE_SIZE; i++)
+		table[i] = nullptr;
+}
+
+HashMap::~HashMap()
+{
+	for (int i = 0; i < TABLE_SIZE; i++)
+		if (table[i] != nullptr)
+			delete table[i];
+
+	delete[] table;
+}
+
+int HashMap::get(int key){
+	int hash = (key % TABLE_SIZE);
+	if (table[hash] == nullptr)
+		return -1;
+	else
+		return table[hash]->getValue();
+}
+
+void HashMap::put(int key, int value){
+	int hash = (key % TABLE_SIZE);
+	if (table[hash] != nullptr)
+		delete table[hash];
+	table[hash] = new HashEntry(key, value);
+}
+
+void HashMap::putLineal(int key, int value){
+	int hash = (key % TABLE_SIZE);
+	if (table[hash] != nullptr){
+		int hs = putLinealR(key, 1);
+		if (hs == TABLE_SIZE) return;
+		table[hs] = new HashEntry(key, value);
+		return;
+	}		
+	table[hash] = new HashEntry(key, value);
+}
+
+int HashMap::putLinealR(int key, int n){
+	int hash = ((key + n) % TABLE_SIZE);
+	if (n == TABLE_SIZE){
+		return n;
+	}
+	else if (table[hash] == nullptr){
+		return hash;
+	}
+	else{
+		n++;
+		return putLinealR(key, n);
+	}
+}
+
+void HashMap::putCuadratico(int key, int value){
+	int hash = (key % TABLE_SIZE);
+	if (table[hash] != nullptr){
+		int hs = putCuadraticoR(key, 1);
+		if (hs == TABLE_SIZE) return;
+		table[hs] = new HashEntry(key, value);
+		return;
+	}
+	table[hash] = new HashEntry(key, value);
+}
+
+int HashMap::putCuadraticoR(int key, int n){
+	int i = pow((double)n, (double)2);
+	int hash = ((key + i) % TABLE_SIZE);
+	if (n == TABLE_SIZE){
+		return n;
+	}
+	else if (table[hash] == nullptr){
+		return hash;
+	}
+	else{
+		n++;
+		return putCuadraticoR(key, n);
+	}
+}
+
+void HashMap::putDouble(int key, int value){
+	int hash = (key % TABLE_SIZE);
+	if (table[hash] != nullptr){
+		int hs = putDoubleR(key, 1);
+		if (hs == TABLE_SIZE) return;
+		table[hs] = new HashEntry(key, value);
+		return;
+	}
+	table[hash] = new HashEntry(key, value);
+}
+
+int HashMap::putDoubleR(int key, int n){
+	int i = (key%TABLE_SIZE) + 1;
+	int hash = ((i - (key%i)) % TABLE_SIZE);
+	if (n == TABLE_SIZE){
+		return n;
+	}
+	else if (table[hash] == nullptr){
+		return hash;
+	}
+	else{
+		n++;
+		return putDoubleR(key, n);
+	}
+}
+
+void HashMap::putFromFileLineal(char* _file){
+	ifstream file(_file);
+	if (!file.is_open()) cout << "No se pudo abrir el archivo." << endl << endl;
+
+	int key, value;
+	string line;
+	while (getline(file, line)) {
+		if (line[0] == '#') continue;
+		stringstream ss(line);
+		ss >> key;
+		while (ss >> value) {
+			putLineal(key, value);
+		}
+	}
+}
+

@@ -1,0 +1,74 @@
+struct Edge
+{
+	int u, v, w;
+};
+
+class Graph
+{
+public:
+	Graph(int v);
+	~Graph();
+
+	void addEdge(int u, int v, int w);
+	void mostrarEdges();
+	void bellmanFord(int src);
+
+private:
+	int v;
+	vector<Edge> edges;
+	int* dist;
+};
+
+Graph::Graph(int v)
+{
+	this->v = v;
+}
+
+Graph::~Graph(){}
+
+void Graph::addEdge(int u, int v, int w){
+	Edge edge;
+	edge.u = u;
+	edge.v = v;
+	edge.w = w;
+	edges.push_back(edge);
+}
+
+void Graph::mostrarEdges(){
+	for (int i = 0; i < edges.size(); i++)
+		cout << edges[i].u << " - " << edges[i].v << " weight: " << edges[i].w  << endl;
+}
+
+void Graph::bellmanFord(int src){
+
+	dist = new int[v];
+
+	for (int i = 0; i < v; i++)
+		dist[i] = INT_MAX;
+	dist[src] = 0;
+
+	for (int i = 0; i < v-1; i++){
+		for (int j = 0; j < edges.size(); j++){
+			int u = edges[j].u;
+			int v = edges[j].v;
+			int w = edges[j].w;
+
+			if (dist[u] != INT_MAX && dist[u] + w < dist[v])
+				dist[v] = dist[u] + w;
+		}
+	}
+
+	for (int i = 0; i < v - 1; i++){
+		for (int j = 0; j < edges.size(); j++){
+			int u = edges[j].u;
+			int v = edges[j].v;
+			int w = edges[j].w;
+
+			if (dist[u] != INT_MAX && dist[u] + w < dist[v])
+				cout << "Existe ciclo negativo";
+		}
+	}
+
+	for (int i = 0; i < v; i++)
+		cout << i << ": " << dist[i] << endl;
+}
